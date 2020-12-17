@@ -14,8 +14,11 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "nodemon node src/index.js",
-    "test": "./test"
+    "build-client": "cd demo && npm run build",
+    "build": "npm run build-client && npm start",
+    "start": "nodemon node app.js",
+    "test": "./test",
+    "mongo": "mongod -port"
   },
   "repository": {
     "type": "git",

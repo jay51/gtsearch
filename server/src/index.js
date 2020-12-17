@@ -1,6 +1,7 @@
 const http = require("http");
 const url = require("url");
 const fs = require("fs");
+const path = require("path");
 const zlib = require("zlib");
 const accepts = require("accepts");
 const webSocket = require("ws");
@@ -10,6 +11,9 @@ const jwt = require('jsonwebtoken');
 const db = require("./db");
 const utils = require("./utils");
 
+/*
+ * authenticate user and send jwt with user info
+ */
 function handleLogin(req, res) {
     let body = "";
     req.on("data", chunk => {
@@ -87,6 +91,7 @@ function getCompressionStream(req) {
     return null;
 }
 
+
 // main Server and websockets setup
 async function main() {
     const driver = db.getDB();
@@ -126,12 +131,12 @@ async function main() {
     }).listen(8080);
 
     // console.log("what is this ", server);
-    const wss = new webSocket.Server({server}, ()=> console.log("this is my callback"));
+    const wss = new webSocket.Server({server});
     // to test this type this in your browser console (const ws = new WebSocket("ws://localhost:3000"))
+    // when we get a connection we get back a socket, then we listen on that socket for a message
     wss.on("connection", (ws, req) => {
-        ws.on("message", msg => {
-            console.log("got a message: ", msg);
-        });
+        console.log("we got a connection")
+        handleWs(ws, req)
     });
 }
 
