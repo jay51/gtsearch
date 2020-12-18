@@ -5,7 +5,6 @@
   "main": "index.js",
   "dependencies": {
     "bcrypt": "^5.0.0",
-    "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.6",
@@ -16,7 +15,7 @@
   "scripts": {
     "build-client": "cd demo && npm run build",
     "build": "npm run build-client && npm start",
-    "start": "nodemon node app.js",
+    "start": "nodemon node src/index.js",
     "test": "./test",
     "mongo": "mongod -port"
   },

@@ -30,7 +30,7 @@ module.export = (ws, req) => {
             return false;
         }
 
-        if (isAuthenticated(json) {
+        if (isAuthenticated(json)){
             // continue doing what you're doing
             const type = json.event.type;
             const handler = events[type];

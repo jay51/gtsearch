@@ -6,10 +6,11 @@ const zlib = require("zlib");
 const accepts = require("accepts");
 const webSocket = require("ws");
 const sqlite3 = require("sqlite3").verbose();
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const db = require("./db");
 const utils = require("./utils");
+const handleWs = require("./ws");
 
 /*
  * authenticate user and send jwt with user info
@@ -62,7 +63,8 @@ function handleRequest(req, res) {
     if (urlPath.startsWith("/static")) {
         // console.log(urlPath);
         // fileName = urlPath.slice("/static/".length)
-        const stream = fs.createReadStream(path.join(__dirname, "demo", "build", urlPath));
+        // const stream = fs.createReadStream(path.join(__dirname, "demo", "build", urlPath));
+        const stream = fs.createReadStream(path.join(__dirname, "..", "..", "client", "dist", urlPath.slice("/static/".length)));
         if (!stream) {
             res.statusCode = 404;
             res.end("not found");
@@ -75,7 +77,8 @@ function handleRequest(req, res) {
     }
 
     res.setHeader("Content-Type", "text/html");
-    return fs.createReadStream(path.join(__dirname, "demo", "build", "index.html"));
+    // return fs.createReadStream(path.join(__dirname, "demo", "build", "index.html"));
+    return fs.createReadStream(path.join(__dirname, "..", "..", "client", "index.html"));
 }
 
 // Returns [name, stream] or null
