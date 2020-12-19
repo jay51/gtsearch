@@ -1,76 +1,17 @@
-import ReactDOM from 'react-dom'
-import {Provider as StoreProvider} from 'react-redux'
-import {createRouter} from 'router5'
-import listenersPlugin from 'router5/plugins/listeners'
-import browserPlugin from 'router5/plugins/browser'
-import {RouterProvider, withRoute} from 'react-router5'
-
-import ws from './ws'
-import f from './fcomp'
-import ReposPage from './repos'
-import CreateRepoPage from './create-repo'
-import RepoInfoPage from './repo-info'
-import SearchPage from './search'
-import LoginPage from './login'
-import LogoutPage from './logout'
-import Header from './header'
-import Footer from './footer'
-import store from './store'
-import routes from './routes'
-
-const {main} = f
-
-const PageSwitch = f(withRoute(
-    ({route}) => {
-        switch (route.name) {
-            case 'root':
-                return ReposPage()
-            case 'login':
-                return LoginPage()
-            case 'logout':
-                return LogoutPage()
-            case 'repositoryInfo':
-                return RepoInfoPage()
-            case 'repositorySearch':
-                return SearchPage()
-            case 'createRepository':
-                return CreateRepoPage()
-        }
-
-        throw new Error('No page for route ' + route.name)
-    }
-))
-
-const Main = f(({children}) =>
-    main(
-        Header(),
-        children,
-        Footer(),
-    ),
-)
-
-const router = createRouter(
-    routes,
-    {
-        defaultRoute: 'root',
-    },
-)
-router.usePlugin(listenersPlugin())
-router.usePlugin(browserPlugin())
-router.start()
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
-    f(StoreProvider)(
-        {store},
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
 
-        f(RouterProvider)(
-            {router},
-
-            Main(PageSwitch('hey')),
-        ),
-    ),
-
-    document.getElementById('react-root'),
-)
-
-import './index.scss'
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();

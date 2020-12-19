@@ -5,13 +5,14 @@ const {promisify} = require("util")
 const utils = require("./utils");
 
 
+// Singleton class
 class Driver {
     constructor() {
         if (Driver.instance instanceof Driver) {
             return Driver.instance;
         }
 
-        this.filePath = path.join(__dirname, "var", "..", "gtsearch.sqlitedb");
+        this.filePath = path.join(__dirname, "..", "var", "gtsearch.sqlitedb");
         this.DB = new sqlite3.Database(this.filePath);
         this.run = promisify(this.DB.run.bind(this.DB));
         this.all = promisify(this.DB.all.bind(this.DB));
@@ -23,6 +24,7 @@ class Driver {
         Object.freeze(this);
         // static var
         Driver.instance = this;
+        this.createDB();
     }
 
     async getUser(email) {
@@ -88,6 +90,4 @@ class Driver {
 }
 
 
-module.exports = {
-    getDB: () => new Driver()
-}
+module.exports = new Driver();

@@ -13,7 +13,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build-client": "cd demo && npm run build",
+    "build-client": "cd ../client && npm run build",
     "build": "npm run build-client && npm start",
     "start": "nodemon node src/index.js",
     "test": "./test",
