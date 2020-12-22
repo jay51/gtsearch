@@ -45,6 +45,7 @@ module.exports = (ws, req) => {
             return false;
         }
 
+        console.log(json)
         if (isAuthenticated(json)){
             const type = json.event.type;
             const handler = events[type];
@@ -63,7 +64,7 @@ module.exports = (ws, req) => {
             return;
         }
 
-        JSON.stringify({error: "Not Authenticated"});
+        ws.send(JSON.stringify({error: "Not Authenticated"}));
         return;
     });
 }

@@ -1,6 +1,8 @@
 import React from "react"
 import "./App.css";
 import LoginPage from "./LoginPage";
+import HomePage from "./HomePage";
+import {Switch, Route, Redirect} from "react-router-dom";
 
 class App extends React.Component {
 
@@ -13,60 +15,55 @@ class App extends React.Component {
         }
         this.HOST = window.location.origin;
         this.WSHOST = this.HOST.replace(/^http/, "ws");
-    }
-
-    componentDidMount() {
         this.ws = new WebSocket(this.WSHOST);
-        const token = localStorage.getItem("token")
-
-        const isValidToken = !(token && Date.now() >= token.exp * 1000);
-        if (isValidToken) {
-            this.setState({isLogedIn: true});
-        }
+        this.ws.onmessage = this._onMessage;
 
         this.ws.onopen = () => {
-            if (isValidToken) {
+            const token = this.getToken();
+            if (token) {
                 const msg = { event: {type: "FETCH_REPOS", payload: {}}, token};
                 console.log("sending saved token", msg);
                 this.ws.send(JSON.stringify(msg));
             }
         }
+    }
 
-        // we sockets response login state should not change the view.
-        // maybe only display an alert if try to make a connection without token.
-        this.ws.onmessage = (msg) => {
-            const json = JSON.parse(msg.data);
-            console.log("got message: ", json)
-            if (!json.error) {
-                // still not sure about this part of the json response
-                this.setState({data: json.data});
-            }
+    _onMessage = (msg) => {
+        const json = JSON.parse(msg.data);
+        console.log("got message: ", json)
+        if (!json.error) {
+            // still not sure about this part of the json response
+            this.setState({data: json.data});
+        }
+        else {
+            alert(json.error);
         }
     }
 
+    logout = () => localStorage.removeItem("token");
+    getToken = () => localStorage.getItem("token");
 
-    getData = async (e) => {
-        const msg = { event: {type: "FETCH_REPOS", payload: {}}};
-        this.ws.send(JSON.stringify(msg));
-    }
-
+    // TODO: Still need to handle when a token expires, how to figure that out?
+    // I think when a token is expired we should return a special json to delete
+    // current token from localstorage and redirect to login.
     render() {
-        if (this.state.isLogedIn) {
-            return (
-                <div>
-                    <h1>YOU ARE LOGED IN</h1>
-                    <button onClick={this.getData}>send anohter socket request</button>
-                    <div>{ JSON.stringify(this.state.data) || "nothing so far"}</div>
-                </div>
-            )
-        }
         return (
-            <div className="App">
-                <LoginPage 
-                    handleLogin={e => this.setState({isLogedIn: true})}
-                    send={(data) => this.ws.send(data)}
+            <Switch>
+                <Route path={"/login"} exact render={props => this.getToken() ?
+                        <Redirect to={"/"} /> :
+                        <LoginPage ws={this.ws} {...props}/>
+                    }
                 />
-            </div>
+                <Route path={"/logout"} exact render={
+                        () => {this.logout(); return <Redirect to={"/login"} />}
+                    }
+                />
+                <Route path={"/"} exact render={ props => this.getToken() ?
+                        <HomePage ws={this.ws} {...props} /> :
+                        <Redirect to={"/login"} />
+                    }
+                />
+            </Switch>
         );
     }
 }

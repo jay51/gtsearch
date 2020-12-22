@@ -25,13 +25,14 @@ class LoginPage extends React.Component {
                 body: JSON.stringify({email: email, password: password})
             });
             const json = await result.json();
-            console.log(json);
+            console.log("login response: ", json);
 
             if (!json.error) {
-                const msg = {event: {type: "FETCH_REPO", payload: {name: "repo name"}}, token: json.token};
-                this.props.send(JSON.stringify(msg));
+                // NOTE: this will authenticate our socket
+                const msg = { event: {type: "FETCH_REPOS", payload: {}}, token: json.token};
+                this.props.ws.send(JSON.stringify(msg));
                 localStorage.setItem("token", json.token);
-                this.props.handleLogin();
+                this.props.history.push("/");
             }
         } catch(e) {
             console.error(e);
