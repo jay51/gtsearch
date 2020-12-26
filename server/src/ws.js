@@ -1,14 +1,26 @@
 const jwt = require("jsonwebtoken");
 
-const db = require("./db")
+const db = require("./db");
+const {repo} = require("./validate");
+const git = require("./git");
 
 const events = {
     // FIXME: group into general handlers and search handlers
     "FETCH_REPOS": async (ws, payload) => {
         const repos = await db.getUserRepos(ws.id);
         const response = {data: repos, error: null}
-        console.log("socket response: ", response);
+        // console.log("socket response: ", response);
         ws.send(JSON.stringify(response));
+    },
+    "CLONE_REPO": async (ws, payload) => {
+        console.log("Clone repo", payload);
+        const errors = repo.validate(payload);
+        if (errors) {
+            // pass for now
+            // ws.send(error: errors);
+        }
+        await db.addRepo({...payload, user_id: ws.token.id});
+        await git.clone(payload.gitUrl, payload.name);
     }
 }
 

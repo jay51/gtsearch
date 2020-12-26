@@ -47,13 +47,10 @@ class Driver {
             this.run(
                 `CREATE TABLE IF NOT EXISTS repos (
                     name TEXT NOT NULL PRIMARY KEY,
-                    webUrl TEXT NOT NULL,
                     gitUrl TEXT NOT NULL,
-                    cloned INTEGER NOT NULL,
-                    fetchFailed INTEGER NOT NULL,
-                    pullDelay INTEGER,
-                    pulledAt INTEGER,
-                    branch TEXT,
+                    cloned INTEGER,
+                    fetchFailed INTEGER,
+                    branch TEXT NOT NULL,
                     user_id INTEGER NOT NULL,
                     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
                 );`
@@ -68,15 +65,16 @@ class Driver {
         });
     }
 
-    async addRepo({name, webUrl, gitUrl, cloned, fetchFailed, branch, user_id}) {
+    async addRepo({name, gitUrl, branch, user_id}) {
         try {
             return await this.run(
-                `INSERT INTO repos (name, webUrl, gitUrl, cloned, fetchFailed, branch, user_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?);
-                );`, [name, webUrl, gitUrl, cloned, fetchFailed, branch, user_id]
+                `INSERT INTO repos (name, gitUrl, branch, user_id)
+                VALUES (?, ?, ?, ?);
+                );`, [name, gitUrl, branch, user_id]
             );
-        } catch {
+        } catch(e) {
             // repo with that name already exist
+            console.error(e);
             return null;
         }
     }

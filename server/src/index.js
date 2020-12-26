@@ -129,7 +129,7 @@ async function main() {
 
         stream.on("error", console.error);
         return stream.pipe(res);
-    }).listen(8080);
+    }).listen(8080, "localhost");
 
     const wss = new webSocket.Server({server});
     // to test this type this in your browser console (const ws = new WebSocket("ws://localhost:3000"))
