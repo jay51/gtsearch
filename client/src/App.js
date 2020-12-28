@@ -9,7 +9,6 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isLogedIn: false,
             data: null,
             error: null
         }
@@ -24,6 +23,32 @@ class App extends React.Component {
                 const msg = { event: {type: "FETCH_REPOS", payload: {}}, token};
                 console.log("sending saved token", msg);
                 this.ws.send(JSON.stringify(msg));
+            }
+        }
+    }
+
+    async componentDidMount() {
+        const token = this.getToken();
+        if (token) {
+            try {
+                const result = await fetch(this.HOST + "/refresh", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                });
+                const json = await result.json();
+                console.log("check the token: ", json);
+
+                if (!json.error) {
+                    localStorage.setItem("token", json.token);
+                } else {
+                    this.logout();
+                }
+            } catch(e) {
+                console.error(e);
             }
         }
     }
@@ -50,12 +75,14 @@ class App extends React.Component {
         return (
             <Switch>
                 <Route path={"/login"} exact render={props => this.getToken() ?
-                        <Redirect to={"/"} /> :
+                        <Redirect {...props} to={"/"} /> :
                         <LoginPage ws={this.ws} {...props}/>
                     }
                 />
-                <Route path={"/logout"} exact render={
-                        () => {this.logout(); return <Redirect to={"/login"} />}
+                <Route path={"/logout"} exact render={props => {
+                            this.logout();
+                            return <Redirect {...props} to={"/login"} />
+                        }
                     }
                 />
                 <Route path={"/"} exact render={ props => this.getToken() ?

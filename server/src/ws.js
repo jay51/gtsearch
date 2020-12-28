@@ -20,7 +20,7 @@ const events = {
             // ws.send(error: errors);
         }
         await db.addRepo({...payload, user_id: ws.token.id});
-        await git.clone(payload.gitUrl, payload.name);
+        await git.clone(payload.gitUrl, payload.name, payload.branch);
     }
 }
 

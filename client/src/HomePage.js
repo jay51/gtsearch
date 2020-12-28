@@ -14,7 +14,7 @@ class HomePage extends React.Component {
                 type: "CLONE_REPO", payload: {
                     name: "flask-course",
                     gitUrl:"https://github.com/jay51/flask-course",
-                    branch: "master"
+                    branch: "dev"
                 }
             }
         };

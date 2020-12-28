@@ -12,6 +12,26 @@ const db = require("./db");
 const utils = require("./utils");
 const handleWs = require("./ws");
 
+
+/* check if token is valide */
+function handleCheckToken(req, res) {
+    const header = req.headers["authorization"];
+    let error = null;
+    let token = null;
+    if (header) {
+        token = header.split(" ")[1];
+        try {
+            jwt.verify(token, "secret");
+        } catch(e) {
+            // console.error(e);
+            error = "Not Authenticated";
+        }
+    }
+    res.end(JSON.stringify({error, token}));
+    return;
+}
+
+
 /*
  * authenticate user and send jwt with user info
  */
@@ -43,7 +63,8 @@ function handleLogin(req, res) {
                 result.error = null;
             }
 
-            return res.end(JSON.stringify(result));
+            res.end(JSON.stringify(result));
+            return;
         } catch (e) {
             console.error(e.message);
         }
@@ -61,6 +82,11 @@ function handleRequest(req, res) {
     if (req.method == "POST" && urlPath.startsWith("/login")) {
         return handleLogin(req, res);
     }
+
+    if (req.method == "POST" && urlPath.startsWith("/refresh")) {
+        return handleCheckToken(req, res);
+    }
+
     if (urlPath.startsWith("/static")) {
         // console.log(urlPath);
         // fileName = urlPath.slice("/static/".length)
@@ -117,6 +143,8 @@ async function main() {
 
     const server = http.createServer((req, res) => {
         let stream = handleRequest(req, res);
+        // NOTE: if we don't return a stream that means we called res.end instead
+        // calling res.setHeader will break if we've already called res.end.
         if (!stream) return;
 
         const compression = getCompressionStream(req);
