@@ -1,8 +1,9 @@
 import React from "react"
 import "./App.css";
-import LoginPage from "./LoginPage";
 import HomePage from "./HomePage";
-import {Switch, Route, Redirect} from "react-router-dom";
+import LoginPage from "./LoginPage";
+import SignupPage from "./SignupPage";
+import {Switch, Route, Redirect, Link} from "react-router-dom";
 
 class App extends React.Component {
 
@@ -73,24 +74,38 @@ class App extends React.Component {
     // current token from localstorage and redirect to login.
     render() {
         return (
-            <Switch>
-                <Route path={"/login"} exact render={props => this.getToken() ?
-                        <Redirect {...props} to={"/"} /> :
-                        <LoginPage ws={this.ws} {...props}/>
-                    }
-                />
-                <Route path={"/logout"} exact render={props => {
-                            this.logout();
-                            return <Redirect {...props} to={"/login"} />
+            <>
+                <nav className="nav nav-masthead justify-content-center">
+                    <Link to="/" className="nav-link active">Home</Link>
+                    <Link to="/login" className="nav-link">Login</Link>
+                    <Link to="/signup" className="nav-link">Signup</Link>
+                </nav>
+                <Switch>
+                    <Route path={"/signup"} exact render={props => this.getToken() ?
+                            <Redirect {...props} to={"/"} /> :
+                            <SignupPage ws={this.ws} {...props}/>
                         }
-                    }
-                />
-                <Route path={"/"} exact render={ props => this.getToken() ?
-                        <HomePage ws={this.ws} {...props} /> :
-                        <Redirect to={"/login"} />
-                    }
-                />
-            </Switch>
+                    />
+                    <Route path={"/login"} exact render={props => this.getToken() ?
+                            <Redirect {...props} to={"/"} /> :
+                            <LoginPage ws={this.ws} {...props}/>
+                        }
+                    />
+                    <Route path={"/logout"} exact render={props => {
+                                this.logout();
+                                return <Redirect {...props} to={"/login"} />
+                            }
+                        }
+                    />
+                    <Route path={"/"} exact render={props => this.getToken() ?
+                            <HomePage ws={this.ws} {...props} /> :
+                            <Redirect to={"/login"} />
+                        }
+                    />
+
+                    <Route exact path="/*" render={props => <h3>404 Page Not Found</h3>} />
+                </Switch>
+            </>
         );
     }
 }
