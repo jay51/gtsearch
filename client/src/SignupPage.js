@@ -1,5 +1,4 @@
 import React from "react"
-import "./App.css";
 
 class SignupPage extends React.Component {
     constructor(props) {
@@ -10,7 +9,9 @@ class SignupPage extends React.Component {
         this.password = React.createRef();
     }
 
-    handleSignup = e => {
+    // FIXME: when user signup we redirect to <Homepage> but wesocket is in <APP>
+    // constructor so it doesn't authenticate the socket until you reload page.
+    handleSignup = async (e) => {
         e.preventDefault();
         const username = this.username.current.value
         const email = this.email.current.value
@@ -20,23 +21,26 @@ class SignupPage extends React.Component {
             return;
         }
 
-        /*
         try {
-            const result = await fetch(this.HOST + "/login", {
+            const result = await fetch(this.HOST + "/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Accept": "application/json"
                 },
-                body: JSON.stringify({email: email, password: password})
+                body: JSON.stringify({username, email, password})
             });
             const json = await result.json();
-            console.log("login response: ", json);
-            // do more things
+            console.log("signup response: ", json);
+
+            if (!json.error) {
+                // NOTE: this will authenticate our socket
+                localStorage.setItem("token", json.token);
+                this.props.history.push("/");
+            }
         } catch(e) {
             console.error(e);
         }
-        */
     }
 
     render() {

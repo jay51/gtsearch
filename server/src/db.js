@@ -32,14 +32,28 @@ class Driver {
         return admin;
     }
 
+    async addUser({username, email, password}) {
+        try {
+            await this.run(
+                `INSERT INTO users(username, email, password) VALUES(?, ?, ?);`,
+                [username, email, password]
+            );
+            return true;
+        } catch(e) {
+            console.error(e);
+            return false;
+        }
+    }
+
     createDB() {
+        // NOTE: email must be UNIQUE because we lookup user by email at login & signup
         this.serialize(function() {
             this.run(
                 `CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     role INTEGER DEFAULT 1,
                     username TEXT NOT NULL,
-                    email TEXT NOT NULL,
+                    email TEXT NOT NULL UNIQUE,
                     password TEXT NOT NULL
                 );`
             );
@@ -58,20 +72,21 @@ class Driver {
 
             const admin = ["admin", "admin@example.com", 0, utils.hashPassword("admin")];
             const placeholders = admin.map(col => "?").join(",");
-            this.run(
-                `INSERT INTO users (username, email, role, password) VALUES (?, ?, ?, ?);`,
-                admin
-            );
+            // this.run(
+                // `INSERT INTO users (username, email, role, password) VALUES (?, ?, ?, ?);`,
+                // admin
+            // );
         });
     }
 
     async addRepo({name, gitUrl, branch, user_id}) {
         try {
-            return await this.run(
+            await this.run(
                 `INSERT INTO repos (name, gitUrl, branch, user_id)
                 VALUES (?, ?, ?, ?);
                 );`, [name, gitUrl, branch, user_id]
             );
+            return true;
         } catch(e) {
             // repo with that name already exist
             console.error(e);

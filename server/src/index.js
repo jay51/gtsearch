@@ -33,6 +33,51 @@ function handleCheckToken(req, res) {
 
 
 /*
+ * register user and send jwt with user info
+ */
+function handleSignup(req, res) {
+    let body = "";
+    req.on("data", chunk => {
+        body += chunk.toString();
+    });
+
+    req.on("end", async () => {
+        try {
+            const json = JSON.parse(body);
+            console.log("Signup: ", json);
+            res.setHeader("Content-Type", "application/json");
+
+            if (!json.username || !json.email || !json.password) {
+                throw new Error("missing fields");
+            }
+
+            json.password = utils.hashPassword(json.password);
+            await db.addUser(json)
+            const user = await db.getUser(json.email);
+            if (user) {
+                const payload = {
+                    // 1 houre
+                    "exp": Math.floor(Date.now() / 1000) + (60 * 60),
+                    "addr": "may be store ip os wss",
+                    "email": user.email,
+                    "username": user.username,
+                    "role": user.role,
+                    "id": user.id
+                };
+
+                const token = jwt.sign(payload, "secret");;
+                res.end(JSON.stringify({token, error: null}));
+                return;
+            }
+
+        } catch (e) {
+            res.end(JSON.stringify({error: "invalide data"}));
+            console.error(e.message);
+        }
+    });
+}
+
+/*
  * authenticate user and send jwt with user info
  */
 function handleLogin(req, res) {
@@ -44,7 +89,7 @@ function handleLogin(req, res) {
     req.on("end", async () => {
         try {
             const json = JSON.parse(body);
-            console.log(json);
+            console.log("Login: ", json);
             res.setHeader("Content-Type", "application/json");
 
             let result = {error: "email or password not found"};
@@ -81,6 +126,10 @@ function handleRequest(req, res) {
     const {path: urlPath} = url.parse(req.url, true);
     if (req.method == "POST" && urlPath.startsWith("/login")) {
         return handleLogin(req, res);
+    }
+
+    if (req.method == "POST" && urlPath.startsWith("/signup")) {
+        return handleSignup(req, res);
     }
 
     if (req.method == "POST" && urlPath.startsWith("/refresh")) {

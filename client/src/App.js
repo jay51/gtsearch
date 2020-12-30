@@ -1,5 +1,4 @@
 import React from "react"
-import "./App.css";
 import HomePage from "./HomePage";
 import LoginPage from "./LoginPage";
 import SignupPage from "./SignupPage";
@@ -77,8 +76,12 @@ class App extends React.Component {
             <>
                 <nav className="nav nav-masthead justify-content-center">
                     <Link to="/" className="nav-link active">Home</Link>
-                    <Link to="/login" className="nav-link">Login</Link>
-                    <Link to="/signup" className="nav-link">Signup</Link>
+                    <Link to="/login" className="nav-link">login</Link>
+                    {
+                        this.getToken() ?
+                        <Link to="/logut" className="nav-link">logout</Link> :
+                        <Link to="/signup" className="nav-link">signup</Link>
+                    }
                 </nav>
                 <Switch>
                     <Route path={"/signup"} exact render={props => this.getToken() ?

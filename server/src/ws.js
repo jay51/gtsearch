@@ -7,6 +7,8 @@ const git = require("./git");
 const events = {
     // FIXME: group into general handlers and search handlers
     "FETCH_REPOS": async (ws, payload) => {
+        // FIXME: we could have a token for a user that was deleted
+        console.log("user ID: ", ws.id);
         const repos = await db.getUserRepos(ws.id);
         const response = {data: repos, error: null}
         // console.log("socket response: ", response);
