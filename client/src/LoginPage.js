@@ -40,14 +40,22 @@ class LoginPage extends React.Component {
 
     render() {
         return (
-            <div className="App">
-                <div>
-                    <input type="text" name="email" ref={this.email}/>
-                </div>
-                <div>
-                    <input type="password" name="password" ref={this.password}/>
-                </div>
-                <button onClick={this.handleLogin}>Submit</button>
+            <div className="container">
+                <form>
+                    <div className="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" ref={this.email} className="form-control mt-3" id="username" placeholder="Enter Username" />
+                    </div>
+
+                    <div className="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" ref={this.password} className="form-control mt-3" id="password" placeholder="Password" />
+                    </div>
+
+                    <button type="submit" className="mt-3 btn btn-primary" onClick={this.handleLogin}>
+                        Submit
+                    </button>
+                </form>
             </div>
         );
     }
