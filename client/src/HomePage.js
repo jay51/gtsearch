@@ -20,6 +20,21 @@ class HomePage extends React.Component {
         this.props.ws.send(JSON.stringify(msg));
     }
 
+    search = async (e) => {
+        const msg = { event: {
+                type: "GREP_SEARCH", payload: {
+                    repoName: "flask-course",
+                    query:"flask",
+                    excludeDir : [".git"],
+                    excludeFile : [".gitignore", "requirements.txt"],
+                    ignoreCase: true,
+                }
+            }
+        };
+
+        this.props.ws.send(JSON.stringify(msg));
+    }
+
     render() {
         return (
             <div className="App">
@@ -28,6 +43,7 @@ class HomePage extends React.Component {
                 </div>
                 <button onClick={this.getData}>Get Repos</button>
                 <button onClick={this.cloneRepo}>Clone Repo</button>
+                <button onClick={this.search}>Search Repo</button>
             </div>
         );
     }

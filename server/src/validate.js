@@ -40,18 +40,31 @@ const user = new Schema({
     },
 });
 
+const searchQuery = new Schema({
+    repoName: {
+        type: String,
+        required: true,
+    },
+    query: {
+        type: String,
+        required: true,
+    },
+    excludeDir: {
+        type: Array,
+        each: {type: String}
+    },
+    excludeFile: {
+        type: Array,
+        each: {type: String}
+    },
+    ignoreCase: {
+        type: Boolean,
+    }
+});
+
 module.exports = {
     repo,
     user,
+    searchQuery,
 }
 
-// const myobj = {
-  // username: "jack",
-  // gitUrl: "https://github.com/jay51/flask-course",
-// };
-
-// const errors = repo.validate(myobj);
-// for (const err of errors) {
-    // console.log(err.path);
-    // console.log(err.message);
-// }

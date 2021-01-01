@@ -2,20 +2,18 @@ const util = require("util");
 const path = require("path");
 const fs = require("fs");
 
+const {getPath} = require("./utils");
+
 const exec = util.promisify(require("child_process").execFile);
 const remove = util.promisify(require('rimraf'));
 const mkdir = util.promisify(fs.mkdir);
 
 class Git {
-    static basePath = path.join(__dirname, '..', 'var', "clones")
     static beingPulled = new Set();
-
-    /* @return path to repo on disk */
-    static getPath = name => path.join(Git.basePath, name);
 
     /* @return Array of all branches */
     static getAllBranches = async (name) => {
-        const repoPath = Git.getPath(name);
+        const repoPath = getPath(name);
         const {stdout} = await exec("git",
             ["-C", repoPath, "branch", "--list", ]
         );
@@ -24,7 +22,7 @@ class Git {
 
     /* @return current branch name */
     static getCurrentBranch = async (name) => {
-        const repoPath = Git.getPath(name);
+        const repoPath = getPath(name);
         const {stdout} = await exec("git",
             ["-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD", ]
         );
@@ -33,7 +31,7 @@ class Git {
 
     /* checkout branch */
     static checkout = async (name, branch) => {
-        const repoPath = Git.getPath(name);
+        const repoPath = getPath(name);
         const {stdout} = await exec("git",
             ["-C", repoPath, "checkout", `origin/${branch}`, ]
         );
@@ -41,7 +39,7 @@ class Git {
 
     /* remove old repo if already exist and clone repo */
     static clone = async (url, name, branch="HEAD") => {
-        const repoPath = Git.getPath(name);
+        const repoPath = getPath(name);
         // maybe use events to tell user what's going on
         this.beingPulled.add(name);
 
@@ -55,7 +53,7 @@ class Git {
 
     /* pull the branch by fetching and reseting to origin/<branch> */
     static pull = async (url, name) => {
-        const repoPath = Git.getPath(name);
+        const repoPath = getPath(name);
         const branc = Git.getCurrentBranch(name);
 
         await remove(repoPath);

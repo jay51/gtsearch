@@ -1,14 +1,15 @@
 const jwt = require("jsonwebtoken");
 
 const db = require("./db");
-const {repo} = require("./validate");
+const {repo, searchQuery} = require("./validate");
 const git = require("./git");
+const {Search} = require("./grep");
 
 const events = {
     // FIXME: group into general handlers and search handlers
     "FETCH_REPOS": async (ws, payload) => {
         // FIXME: we could have a token for a user that was deleted
-        console.log("user ID: ", ws.id);
+        console.log("user token: ", ws.token);
         const repos = await db.getUserRepos(ws.id);
         const response = {data: repos, error: null}
         // console.log("socket response: ", response);
@@ -17,12 +18,32 @@ const events = {
     "CLONE_REPO": async (ws, payload) => {
         console.log("Clone repo", payload);
         const errors = repo.validate(payload);
-        if (errors) {
+        if (errors.length) {
             // pass for now
             // ws.send(error: errors);
+            console.log("CLONE_REPO: incorrect data", errors);
         }
         await db.addRepo({...payload, user_id: ws.token.id});
         await git.clone(payload.gitUrl, payload.name, payload.branch);
+    },
+    "GREP_SEARCH": async (ws, payload) => {
+        const errors = searchQuery.validate(payload);
+        if (errors.length) {
+            // pass for now
+            // ws.send(error: errors);
+            console.log("GREP_SEARCH: incorrect data", errors);
+        }
+        const task = new Search(payload);
+
+        task.on("data", data => {
+            console.log("got data:", data);
+            if(!data.length){
+                return;
+            }
+            ws.send(JSON.stringify({error: null, data}));
+        });
+
+        task.start();
     }
 }
 
