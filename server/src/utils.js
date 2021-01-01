@@ -15,14 +15,8 @@ function comparePassword(password, hash) {
 
 
 /* @return path to repo on disk */
-function getPath(name, base=null) {
-    let basePath;
-    if (base) {
-        basePath = path.join(__dirname, ...arguments);
-    }
-
-    basePath = path.join(__dirname, '..', 'var', "clones");
-    const result = path.join(basePath, name);
+function getPath(id, name) {
+    let result = path.join(__dirname, '..', 'var', "clones", id, name);
     console.log("getpath: ", result);
     return result;
 }

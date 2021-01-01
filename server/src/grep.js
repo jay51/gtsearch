@@ -6,11 +6,13 @@ const child_process = require("child_process")
 const {getPath} = require("./utils");
 
 
+// FIXME: can't buffer output to client because you can't know if this
+// is a new search or just the next buffer. react will replace whole array
 class Search extends EventEmitter {
-    constructor({query, excludeDir, excludeFile, ignoreCase, repoName}) {
+    constructor({id, query, excludeDir, excludeFile, ignoreCase, repoName}) {
         super();
         this.query = query;
-        this.path = getPath(repoName);
+        this.path = getPath(id, repoName);
         this.process = child_process.spawn(
             "grep",
 

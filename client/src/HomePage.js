@@ -36,14 +36,27 @@ class HomePage extends React.Component {
     }
 
     render() {
+        console.log("props: ", this.props.data);
         return (
-            <div className="App">
+            <div className="container">
                 <div>
                     <h2> youre loged in</h2>
                 </div>
                 <button onClick={this.getData}>Get Repos</button>
                 <button onClick={this.cloneRepo}>Clone Repo</button>
                 <button onClick={this.search}>Search Repo</button>
+                <div>
+                    {
+                        this.props.data.map(search => {
+                            return (
+                                <div>
+                                    <div>{search.filePath}</div>
+                                    <div>{search.lines.map(l => <div>{l}</div>)}</div>
+                                </div>
+                            )
+                        })
+                    }
+                </div>
             </div>
         );
     }

@@ -47,8 +47,8 @@ class Driver {
 
     createDB() {
         // NOTE: email must be UNIQUE because we lookup user by email at login & signup
-        this.serialize(function() {
-            this.run(
+        this.serialize( async () => {
+            await this.run(
                 `CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     role INTEGER DEFAULT 1,
@@ -58,9 +58,10 @@ class Driver {
                 );`
             );
 
-            this.run(
+            await this.run(
                 `CREATE TABLE IF NOT EXISTS repos (
-                    name TEXT NOT NULL PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
                     gitUrl TEXT NOT NULL,
                     cloned INTEGER,
                     fetchFailed INTEGER,
@@ -72,10 +73,14 @@ class Driver {
 
             const admin = ["admin", "admin@example.com", 0, utils.hashPassword("admin")];
             const placeholders = admin.map(col => "?").join(",");
-            // this.run(
-                // `INSERT INTO users (username, email, role, password) VALUES (?, ?, ?, ?);`,
-                // admin
-            // );
+            try {
+                await this.run(
+                    `INSERT INTO users (username, email, role, password) VALUES (?, ?, ?, ?);`,
+                    admin
+                );
+            } catch(e) {
+                console.log("admin", "admin@example.com");
+            }
         });
     }
 

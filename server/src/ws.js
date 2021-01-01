@@ -9,38 +9,42 @@ const events = {
     // FIXME: group into general handlers and search handlers
     "FETCH_REPOS": async (ws, payload) => {
         // FIXME: we could have a token for a user that was deleted
-        console.log("user token: ", ws.token);
-        const repos = await db.getUserRepos(ws.id);
-        const response = {data: repos, error: null}
-        // console.log("socket response: ", response);
-        ws.send(JSON.stringify(response));
+        // console.log("user token: ", ws.token);
+        const repos = await db.getUserRepos(ws.token.id);
+        ws.send(
+            JSON.stringify({error: null, event: {type: "FETCH_REPOS", payload: repos}})
+        );
     },
     "CLONE_REPO": async (ws, payload) => {
         console.log("Clone repo", payload);
         const errors = repo.validate(payload);
         if (errors.length) {
-            // pass for now
             // ws.send(error: errors);
             console.log("CLONE_REPO: incorrect data", errors);
         }
         await db.addRepo({...payload, user_id: ws.token.id});
-        await git.clone(payload.gitUrl, payload.name, payload.branch);
+        const id = ws.token.id.toString();
+        await git.clone(id, payload.gitUrl, payload.name, payload.branch);
+        ws.send(
+            JSON.stringify({error: null, event: {type: "CLONE_REPO", payload:"success"}})
+        );
     },
     "GREP_SEARCH": async (ws, payload) => {
         const errors = searchQuery.validate(payload);
         if (errors.length) {
-            // pass for now
             // ws.send(error: errors);
             console.log("GREP_SEARCH: incorrect data", errors);
         }
-        const task = new Search(payload);
+        const task = new Search({...payload, id: ws.token.id.toString()});
 
         task.on("data", data => {
             console.log("got data:", data);
             if(!data.length){
                 return;
             }
-            ws.send(JSON.stringify({error: null, data}));
+            ws.send(
+                JSON.stringify({error: null, event: {type: "GREP_SEARCH", payload: data}})
+            );
         });
 
         task.start();

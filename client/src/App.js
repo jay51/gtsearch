@@ -9,7 +9,8 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: null,
+            data: [],
+            repos: [],
             error: null
         }
         this.HOST = window.location.origin;
@@ -55,10 +56,22 @@ class App extends React.Component {
 
     _onMessage = (msg) => {
         const json = JSON.parse(msg.data);
-        console.log("got message: ", json)
         if (!json.error) {
-            // still not sure about this part of the json response
-            this.setState({data: json.data});
+            console.log("got message: ", json.event);
+            switch(json.event.type ) {
+                case "FETCH_REPOS":
+                    this.setState({repos: json.event.payload});
+                    break
+                case "GREP_SEARCH":
+                    console.log("this got called");
+                    this.setState({data: json.event.payload});
+                    break
+                case "CLONE_REPO":
+                    console.log("CLONE_REPO: ", json)
+                    break
+                default:
+                    console.log("unkown event");
+            }
         }
         else {
             alert(json.error);
@@ -101,7 +114,7 @@ class App extends React.Component {
                         }
                     />
                     <Route path={"/"} exact render={props => this.getToken() ?
-                            <HomePage ws={this.ws} {...props} /> :
+                            <HomePage ws={this.ws} data={this.state.data} {...props} /> :
                             <Redirect to={"/login"} />
                         }
                     />
