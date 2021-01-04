@@ -13,6 +13,7 @@ class Search extends EventEmitter {
         super();
         this.query = query;
         this.path = getPath(id, repoName);
+        this.buffer = [];
         this.process = child_process.spawn(
             "grep",
 
@@ -36,6 +37,8 @@ class Search extends EventEmitter {
         );
     }
 
+    static runningProcesses = [];
+
     start = () => {
         console.log("new search for: ", this.query);
         /* NOTE: grep output is bufferd be careful.
@@ -44,7 +47,7 @@ class Search extends EventEmitter {
          */
         this.process.stdout.on('data', (data) => {
             const result = this.parse(data.toString().split("\n"));
-            this.emit("data", result);
+            this.buffer = this.buffer.concat(result);
         });
 
         this.process.stderr.on('data', (data) => {
@@ -58,7 +61,8 @@ class Search extends EventEmitter {
         });
 
         this.process.on('exit', (code) => {
-            console.log(`exit process exited with code ${code}`);
+            // console.log(`exit process exited with code ${code}`);
+            this.emit("data", this.buffer);
             this.emit("exit", code);
         });
     }
@@ -66,6 +70,12 @@ class Search extends EventEmitter {
     kill() {
         const signal = "SIGTERM";
         this.process.kill(signal);
+    }
+
+    static killRunningProcesses() {
+        for(let task of Search.runningProcesses) {
+            task.kill();
+        }
     }
 
     /*

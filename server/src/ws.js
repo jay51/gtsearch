@@ -36,6 +36,8 @@ const events = {
             console.log("GREP_SEARCH: incorrect data", errors);
         }
         const task = new Search({...payload, id: ws.token.id.toString()});
+        Search.killRunningProcesses();
+        Search.runningProcesses.push(task);
 
         task.on("data", data => {
             console.log("got data:", data);
@@ -45,6 +47,11 @@ const events = {
             ws.send(
                 JSON.stringify({error: null, event: {type: "GREP_SEARCH", payload: data}})
             );
+        });
+
+        task.on("exit", code => {
+            Search.runningProcesses = Search.runningProcesses.filter(t => t.query !== task.query);
+            console.log("exit", Search.runningProcesses);
         });
 
         task.start();
