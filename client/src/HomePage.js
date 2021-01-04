@@ -33,18 +33,22 @@ class HomePage extends React.Component {
     }
 
     search = async (e) => {
-        const msg = { event: {
-                type: "GREP_SEARCH", payload: {
-                    repoName: "flask-course",
-                    query:"flask",
-                    excludeDir : [".git"],
-                    excludeFile : [".gitignore", "requirements.txt"],
-                    ignoreCase: true,
+        this.setState({query: e.target.value}, () => {
+            const msg = { event: {
+                    type: "GREP_SEARCH",
+                    payload: {
+                        // NOTE: will need to first fetch all user repos first
+                        repoName: "flask-course",
+                        query: this.state.query,
+                        excludeDir: this.state.ignoreDirs.map(el => el.name),
+                        excludeFile: this.state.ignoreFiles.map(el => el.name),
+                        ignoreCase: this.state.ignoreCase,
+                    }
                 }
-            }
-        };
+            };
 
-        this.props.ws.send(JSON.stringify(msg));
+            this.props.ws.send(JSON.stringify(msg));
+        });
     }
 
     ignoreInputHandler = (e, inputType) => {
@@ -106,7 +110,7 @@ class HomePage extends React.Component {
 
                     <div className="row">
                         <div className="form-group col-10">
-                            <input type="text" className="form-control mb-3 mt-3 search-btn" placeholder="Search" />
+                            <input type="text" value={this.state.query} onChange={this.search} className="form-control mb-3 mt-3 search-btn" placeholder="Search" />
                         </div>
 
                         <div className="form-group col-2">
@@ -123,7 +127,6 @@ class HomePage extends React.Component {
 
                     <div className="row">
                         <div className="col-10">
-                            <div className="row">code will go here</div>
                             {
                                 this.props.data.map(search => {
                                     return (
@@ -137,6 +140,13 @@ class HomePage extends React.Component {
                         </div>
 
                         <div className="col-2">
+                            <input type="checkbox"
+                                className="form-check-input"
+                                checked={this.state.ignoreCase}
+                                onClick={e => this.setState({ignoreCase: !this.state.ignoreCase})}
+                            />
+                            <label className="form-check-label">Ignore Case</label>
+
                             <div className="form-group">
                                 <input type="text" ref={this.ignoreFile} onKeyUp={ e => this.ignoreInputHandler(e, "File")} className="form-control mb-3 mt-5" placeholder="file to ignore" />
                             </div>
