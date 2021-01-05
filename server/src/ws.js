@@ -35,7 +35,23 @@ const events = {
             // ws.send(error: errors);
             console.log("GREP_SEARCH: incorrect data", errors);
         }
-        const task = new Search({...payload, id: ws.token.id.toString()});
+        const {query, excludeDir, excludeFile, ignoreCase, repoId} = payload;
+        const repo = await db.getRepo(repoId, ws.token.id);
+        if (!repo) {
+            return ws.send(
+                JSON.stringify({error: "unkown repo"})
+            );
+        }
+
+        // NOTE: don't pass payload like `...payload`
+        // because user can override `user_id` and access a repo that's not his.
+        const task = new Search({
+            ...repo,
+            query,
+            excludeDir,
+            excludeFile,
+            ignoreCase,
+        });
         Search.killRunningProcesses();
         Search.runningProcesses.push(task);
 

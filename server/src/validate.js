@@ -41,8 +41,8 @@ const user = new Schema({
 });
 
 const searchQuery = new Schema({
-    repoName: {
-        type: String,
+    repoId: {
+        type: Number,
         required: true,
     },
     query: {

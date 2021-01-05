@@ -32,6 +32,13 @@ class Driver {
         return admin;
     }
 
+    async getRepo(repo_id, user_id) {
+        const repo = await this.get(
+            `SELECT * FROM repos WHERE id = (?) AND user_id = (?) ;`, [repo_id, user_id]
+        );
+        return repo;
+    }
+
     async addUser({username, email, password}) {
         try {
             await this.run(

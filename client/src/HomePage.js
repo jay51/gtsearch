@@ -6,7 +6,7 @@ class HomePage extends React.Component {
         super(props);
         this.state = {
             query:"",
-            repo:"",
+            repoId:"",
             ignoreCase: false,
             ignoreFiles: [],
             ignoreDirs: [],
@@ -38,7 +38,7 @@ class HomePage extends React.Component {
                     type: "GREP_SEARCH",
                     payload: {
                         // NOTE: will need to first fetch all user repos first
-                        repoName: "flask-course",
+                        repoId: 1,
                         query: this.state.query,
                         excludeDir: this.state.ignoreDirs.map(el => el.name),
                         excludeFile: this.state.ignoreFiles.map(el => el.name),
