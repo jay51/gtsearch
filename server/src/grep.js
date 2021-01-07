@@ -90,14 +90,10 @@ class Search extends EventEmitter {
 
             let codeIdx = null;
             let lineNumber = "";
-            let exactLine = false;
 
             for (let i = 0; i < code.length; i++) {
                 if (code[i] === ":" || code[i] === "-") {
-                    if(code[i] === ":") {
-                        lineNumber = parseInt(lineNumber);
-                        exactLine = true;
-                    }
+                    lineNumber = parseInt(lineNumber);
                     codeIdx = i+1;
                     break;
                 }
@@ -107,17 +103,12 @@ class Search extends EventEmitter {
             code = code.substring(codeIdx).trim();
             if (code) {
                 let search = searches.filter(s => s.filePath === filePath )[0];
+
                 if (search) {
-                    search.lines.push(code);
-                    if (exactLine) {
-                        search.lineNumbers.push(lineNumber);
-                    }
+                    search.lines.push({code, lineNumber});
                 }
                 else {
-                    search = {filePath, lines: [code], lineNumbers: []};
-                    if (exactLine) {
-                        search.lineNumbers.push(lineNumber);
-                    }
+                    search = {filePath, lines: [{line:code, lineNumber}]};
                     searches.push(search);
                 }
             }

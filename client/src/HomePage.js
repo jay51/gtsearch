@@ -132,7 +132,7 @@ class HomePage extends React.Component {
                                     return (
                                         <div className="row">
                                             <div>{search.filePath}</div>
-                                            <div>{search.lines.map(l => <div>{l}</div>)}</div>
+                                            <div>{search.lines.map(l => <div>{l.lineNumber}: {l.code}</div>)}</div>
                                         </div>
                                     )
                                 })
