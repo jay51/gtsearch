@@ -1,11 +1,11 @@
-import React from "react"
+import React from "react";
 import HomePage from "./HomePage";
 import LoginPage from "./LoginPage";
 import SignupPage from "./SignupPage";
 import {Switch, Route, Redirect, Link} from "react-router-dom";
 
-class App extends React.Component {
 
+class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -43,6 +43,7 @@ class App extends React.Component {
                 const json = await result.json();
                 console.log("check the token: ", json);
 
+                // means token expired
                 if (!json.error) {
                     localStorage.setItem("token", json.token);
                 } else {
@@ -63,11 +64,14 @@ class App extends React.Component {
                     this.setState({repos: json.event.payload});
                     break
                 case "GREP_SEARCH":
-                    console.log("this got called");
                     this.setState({data: json.event.payload});
                     break
                 case "CLONE_REPO":
-                    console.log("CLONE_REPO: ", json)
+                    {
+                        const msg = json.error ? "CLONE_REPO Success" : "CLONE_REPO  Failed";
+                        alert(msg);
+                        console.log("CLONE_REPO: ", json)
+                    }
                     break
                 default:
                     console.log("unkown event");
@@ -81,9 +85,6 @@ class App extends React.Component {
     logout = () => localStorage.removeItem("token");
     getToken = () => localStorage.getItem("token");
 
-    // TODO: Still need to handle when a token expires, how to figure that out?
-    // I think when a token is expired we should return a special json to delete
-    // current token from localstorage and redirect to login.
     render() {
         return (
             <>
@@ -114,7 +115,7 @@ class App extends React.Component {
                         }
                     />
                     <Route path={"/"} exact render={props => this.getToken() ?
-                            <HomePage ws={this.ws} data={this.state.data} {...props} /> :
+                            <HomePage ws={this.ws} data={this.state.data} repos={this.state.repos} {...props} /> :
                             <Redirect to={"/login"} />
                         }
                     />

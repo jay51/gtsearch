@@ -1,18 +1,18 @@
-import React from "react"
+import React from "react";
+import DisplayCode from "./DisplayCode";
+import DynamicInput from "./DynamicInput";
+
 
 class HomePage extends React.Component {
-
     constructor(props) {
         super(props);
         this.state = {
             query:"",
-            repoId:"",
+            repo: {name:""},
             ignoreCase: false,
             ignoreFiles: [],
             ignoreDirs: [],
         }
-        this.ignoreFile = React.createRef();
-        this.ignoreDir = React.createRef();
     }
 
     getData = async (e) => {
@@ -51,23 +51,22 @@ class HomePage extends React.Component {
         });
     }
 
-    ignoreInputHandler = (e, inputType) => {
+    ignoreInputHandler = (e, val, inputType) => {
         if (e.code === "Enter") {
-            // console.log("enter", this.ignoreFile.current.value);
             if(inputType === "File") {
-                const option = {name: this.ignoreFile.current.value, activated: true}
+                const option = {name: val, activated: true}
                 option.id = this.state.ignoreFiles.length;
                 this.setState({ignoreFiles: [...this.state.ignoreFiles, option]});
             }
             else if(inputType === "Dir") {
-                const option = {name: this.ignoreDir.current.value, activated: true}
+                const option = {name: val, activated: true}
                 option.id = this.state.ignoreDirs.length;
                 this.setState({ignoreDirs: [...this.state.ignoreDirs, option]});
             }
         }
     }
 
-    deleteCheckbox = (e, inputType, id) => {
+    deleteInput = (e, id, inputType) => {
         if(inputType === "File") {
             const newBoxes = this.state.ignoreFiles.filter(el => el.id !== id);
             this.setState({ignoreFiles: newBoxes});
@@ -78,7 +77,7 @@ class HomePage extends React.Component {
         }
     }
 
-    toggleCheckbox = (e, inputType, id) => {
+    toggleCheckbox = (e, id, inputType) => {
         if(inputType === "File") {
             const newBoxes = this.state.ignoreFiles.map(el => {
                 if(el.id === id) {
@@ -114,83 +113,54 @@ class HomePage extends React.Component {
                         </div>
 
                         <div className="form-group col-2">
-                            <select className="form-control mt-3 mb-3" value={this.state.repo} onChange={e => this.setState({repo: e.target.value})}>
-                                <option>Repo...</option>
-                                <option>next</option>
+                            <select className="form-control mt-3 mb-3" value={this.state.repo.name} onChange={e => this.setState({repo: e.target.value})}>
+                                {
+                                    this.props.repos.map(option => <option value={option}>{option.name}</option>)
+                                }
                             </select>
 
                             <div className="form-group">
-                                <input type="text" className="form-control mb-3 mt-3" placeholder="Add repo" />
+                                <input
+                                    type="text"
+                                    className="form-control mb-3 mt-3"
+                                    placeholder="Add repo"
+                                />
                             </div>
+
                         </div>
+
                     </div>
 
                     <div className="row">
                         <div className="col-10">
-                            {
-                                this.props.data.map(search => {
-                                    return (
-                                        <div className="row">
-                                            <div>{search.filePath}</div>
-                                            <div>{search.lines.map(l => <div>{l.lineNumber}: {l.code}</div>)}</div>
-                                        </div>
-                                    )
-                                })
-                            }
+                            <DisplayCode data={this.props.data}/>
                         </div>
 
+                        {/* configuration bar */}
                         <div className="col-2">
                             <input type="checkbox"
                                 className="form-check-input"
                                 checked={this.state.ignoreCase}
-                                onClick={e => this.setState({ignoreCase: !this.state.ignoreCase})}
+                                onChange={e => this.setState({ignoreCase: !this.state.ignoreCase})}
                             />
                             <label className="form-check-label">Ignore Case</label>
 
-                            <div className="form-group">
-                                <input type="text" ref={this.ignoreFile} onKeyUp={ e => this.ignoreInputHandler(e, "File")} className="form-control mb-3 mt-5" placeholder="file to ignore" />
-                            </div>
-                            {
-                                this.state.ignoreFiles.map(el => {
-                                    return (
-                                        <div className="form-check" key={el.id}>
-                                            <input
-                                                type="checkbox"
-                                                className="form-check-input"
-                                                checked={el.activated}
-                                                onChange={e => this.toggleCheckbox(e, "File", el.id)}
-                                            />
-                                            <label className="form-check-label">
-                                                {el.name}
-                                                <span onClick={e => this.deleteCheckbox(e, "File", el.id)}>X</span>
-                                            </label>
-                                        </div>
-                                    )
-                                })
-                            }
 
-                            <div className="form-group">
-                                <input type="text" ref={this.ignoreDir} onKeyUp={e => this.ignoreInputHandler(e, "Dir")} className="form-control mb-3 mt-3" placeholder="dir to ignore" />
-                            </div>
+                            <DynamicInput
+                                keyUpHandler={(e, val) => this.ignoreInputHandler(e, val, "File")}
+                                toggleCheckbox={(e, id) => this.toggleCheckbox(e, id, "File")}
+                                onDelete={(e, id) => this.deleteInput(e, id, "File")}
+                                inputs={this.state.ignoreFiles}
+                                placeholder={"File to ignore"}
+                            />
 
-                            {
-                                this.state.ignoreDirs.map(el => {
-                                    return (
-                                        <div className="form-check" key={el.id}>
-                                            <input
-                                                type="checkbox"
-                                                className="form-check-input"
-                                                checked={el.activated}
-                                                onChange={e => this.toggleCheckbox(e, "Dir", el.id)}
-                                            />
-                                            <label className="form-check-label">
-                                                {el.name}
-                                                <span onClick={e => this.deleteCheckbox(e, "Dir", el.id)}>X</span>
-                                            </label>
-                                        </div>
-                                    )
-                                })
-                            }
+                            <DynamicInput
+                                keyUpHandler={(e, val) => this.ignoreInputHandler(e, val, "Dir")}
+                                toggleCheckbox={(e, id) => this.toggleCheckbox(e, id, "Dir")}
+                                onDelete={(e, id) => this.deleteInput(e, id, "Dir")}
+                                inputs={this.state.ignoreDirs}
+                                placeholder={"Dir to ignore"}
+                            />
                         </div>
 
                     </div>
