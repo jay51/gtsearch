@@ -9,8 +9,6 @@ class SignupPage extends React.Component {
         this.password = React.createRef();
     }
 
-    // FIXME: when user signup we redirect to <Homepage> but wesocket is in <APP>
-    // constructor so it doesn't authenticate the socket until you reload page.
     handleSignup = async (e) => {
         e.preventDefault();
         const username = this.username.current.value
@@ -34,9 +32,10 @@ class SignupPage extends React.Component {
             console.log("signup response: ", json);
 
             if (!json.error) {
-                // NOTE: this will authenticate our socket
+                // NOTE: will rerender App.js which will authenticate socket
+                // and rerender correct route
                 localStorage.setItem("token", json.token);
-                this.props.history.push("/");
+                this.props.cb();
             }
         } catch(e) {
             console.error(e);

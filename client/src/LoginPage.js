@@ -27,11 +27,10 @@ class LoginPage extends React.Component {
             console.log("login response: ", json);
 
             if (!json.error) {
-                // NOTE: this will authenticate our socket
-                const msg = { event: {type: "FETCH_REPOS", payload: {}}, token: json.token};
-                this.props.ws.send(JSON.stringify(msg));
+                // NOTE: will rerender App.js which will authenticate socket
+                // and rerender correct route
                 localStorage.setItem("token", json.token);
-                this.props.history.push("/");
+                this.props.cb();
             }
         } catch(e) {
             console.error(e);

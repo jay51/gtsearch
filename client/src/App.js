@@ -1,8 +1,10 @@
 import React from "react";
+import {Switch, Route, Redirect, Link} from "react-router-dom";
+
 import HomePage from "./HomePage";
 import LoginPage from "./LoginPage";
 import SignupPage from "./SignupPage";
-import {Switch, Route, Redirect, Link} from "react-router-dom";
+import createWS from "./ws";
 
 
 class App extends React.Component {
@@ -11,24 +13,21 @@ class App extends React.Component {
         this.state = {
             data: [],
             repos: [],
-            error: null
+            error: null,
+            authenticated: false,
+            wsConnected: false,
         }
         this.HOST = window.location.origin;
         this.WSHOST = this.HOST.replace(/^http/, "ws");
-        this.ws = new WebSocket(this.WSHOST);
-        this.ws.onmessage = this._onMessage;
+        this.ws = null;
+        this.checkAuth();
 
-        this.ws.onopen = () => {
-            const token = this.getToken();
-            if (token) {
-                const msg = { event: {type: "FETCH_REPOS", payload: {}}, token};
-                console.log("sending saved token", msg);
-                this.ws.send(JSON.stringify(msg));
-            }
-        }
     }
 
-    async componentDidMount() {
+    removeToken = () => localStorage.removeItem("token");
+    getToken = () => localStorage.getItem("token");
+
+    async checkAuth() {
         const token = this.getToken();
         if (token) {
             try {
@@ -43,11 +42,13 @@ class App extends React.Component {
                 const json = await result.json();
                 console.log("check the token: ", json);
 
-                // means token expired
                 if (!json.error) {
                     localStorage.setItem("token", json.token);
+                    this.setState({authenticated: true});
                 } else {
-                    this.logout();
+                    // means token expired
+                    this.removeToken();
+                    console.log("remove expired token");
                 }
             } catch(e) {
                 console.error(e);
@@ -82,39 +83,56 @@ class App extends React.Component {
         }
     }
 
-    logout = () => localStorage.removeItem("token");
-    getToken = () => localStorage.getItem("token");
+    logout = () => {
+        this.removeToken();
+        this.setState({authenticated: false});
+    }
 
     render() {
+        const {authenticated, wsConnected} = this.state;
+        if (authenticated && !wsConnected) {
+            this.ws = createWS(this.WSHOST, this.getToken());
+            this.ws.onmessage = this._onMessage;
+            this.setState({wsConnected: true});
+        }
+
         return (
             <>
                 <nav className="nav nav-masthead justify-content-center">
                     <Link to="/" className="nav-link active">Home</Link>
                     <Link to="/login" className="nav-link">login</Link>
                     {
-                        this.getToken() ?
-                        <Link to="/logut" className="nav-link">logout</Link> :
+                        this.state.authenticated ?
+                        <button onClick={this.logout} className="nav-link btn btn-link">logout</button> :
                         <Link to="/signup" className="nav-link">signup</Link>
                     }
                 </nav>
                 <Switch>
-                    <Route path={"/signup"} exact render={props => this.getToken() ?
+                    <Route path={"/signup"} exact render={props => this.state.authenticated ?
                             <Redirect {...props} to={"/"} /> :
-                            <SignupPage ws={this.ws} {...props}/>
+                            <SignupPage
+                                ws={this.ws}
+                                cb={()=> this.setState({authenticated: true})}
+                                {...props}
+                            />
                         }
                     />
-                    <Route path={"/login"} exact render={props => this.getToken() ?
+                    <Route path={"/login"} exact render={props => this.state.authenticated ?
                             <Redirect {...props} to={"/"} /> :
-                            <LoginPage ws={this.ws} {...props}/>
+                            <LoginPage
+                                ws={this.ws}
+                                cb={()=> this.setState({authenticated: true})}
+                                {...props}
+                            />
                         }
                     />
                     <Route path={"/logout"} exact render={props => {
-                                this.logout();
-                                return <Redirect {...props} to={"/login"} />
+                                this.removeToken();
+                                // this.setState({authenticated: false});
                             }
                         }
                     />
-                    <Route path={"/"} exact render={props => this.getToken() ?
+                    <Route path={"/"} exact render={props => this.state.authenticated ?
                             <HomePage ws={this.ws} data={this.state.data} repos={this.state.repos} {...props} /> :
                             <Redirect to={"/login"} />
                         }
