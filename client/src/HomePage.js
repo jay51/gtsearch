@@ -8,11 +8,13 @@ class HomePage extends React.Component {
         super(props);
         this.state = {
             query:"",
-            repo: {name:""},
+            repo: {name:"", id: null},
             ignoreCase: false,
             ignoreFiles: [],
             ignoreDirs: [],
         }
+        this.repoToAdd = React.createRef();
+        this.branchToAdd = React.createRef();
     }
 
     getData = async (e) => {
@@ -20,12 +22,12 @@ class HomePage extends React.Component {
         this.props.ws.send(JSON.stringify(msg));
     }
 
-    cloneRepo = async (e) => {
+    cloneRepo = async (name, url, branch) => {
         const msg = { event: {
                 type: "CLONE_REPO", payload: {
-                    name: "flask-course",
-                    gitUrl:"https://github.com/jay51/flask-course",
-                    branch: "dev"
+                    name: name,
+                    gitUrl: url,
+                    branch: branch,
                 }
             }
         };
@@ -33,15 +35,17 @@ class HomePage extends React.Component {
     }
 
     search = async (e) => {
+        if (!this.state.repo) return;
+
         this.setState({query: e.target.value}, () => {
             const msg = { event: {
                     type: "GREP_SEARCH",
                     payload: {
                         // NOTE: will need to first fetch all user repos first
-                        repoId: 1,
+                        repoId: this.state.repo.id,
                         query: this.state.query,
-                        excludeDir: this.state.ignoreDirs.map(el => el.name),
-                        excludeFile: this.state.ignoreFiles.map(el => el.name),
+                        excludeDir: this.state.ignoreDirs.filter(el => el.activated).map(el => el.name),
+                        excludeFile: this.state.ignoreFiles.filter(el => el.activated).map(el => el.name),
                         ignoreCase: this.state.ignoreCase,
                     }
                 }
@@ -98,33 +102,63 @@ class HomePage extends React.Component {
         }
     }
 
+    addRepo = async (e) => {
+        // send a clone request and then a fetch request
+        const url = this.repoToAdd.current.value;
+        const name = url.substring(url.lastIndexOf("/")+1);
+        console.log(url, name, this.branchToAdd.current.value);
+        this.cloneRepo(name, url, this.branchToAdd.current.value)
+
+        const msg = { event: {type: "FETCH_REPOS", payload: {}}};
+        this.props.ws.send(JSON.stringify(msg));
+    }
+
     render() {
         console.log("props: ", this.props.data);
+        console.log(this.state);
         return (
             <div className="container">
                 <button onClick={this.getData}>Get Repos</button>
-                <button onClick={this.cloneRepo}>Clone Repo</button>
-                <button onClick={this.search}>Search Repo</button>
                 <div className="row">
 
                     <div className="row">
                         <div className="form-group col-10">
-                            <input type="text" value={this.state.query} onChange={this.search} className="form-control mb-3 mt-3 search-btn" placeholder="Search" />
+                            <input 
+                                type="text"
+                                value={this.state.query}
+                                onChange={this.search}
+                                className="form-control mb-3 mt-3 search-btn"
+                                placeholder="Search"
+                            />
                         </div>
 
                         <div className="form-group col-2">
-                            <select className="form-control mt-3 mb-3" value={this.state.repo.name} onChange={e => this.setState({repo: e.target.value})}>
+                            <select className="form-control mt-3 mb-3"
+                                value={this.state.repo.name}
+                                onChange={e => this.setState({repo: JSON.parse(e.target.value)})}
+                            >
                                 {
-                                    this.props.repos.map(option => <option value={option}>{option.name}</option>)
+                                    this.props.repos.map(option =>
+                                        (<option value={JSON.stringify(option)}>{option.name}</option>)
+                                    )
                                 }
                             </select>
 
                             <div className="form-group">
                                 <input
                                     type="text"
+                                    ref={this.repoToAdd}
                                     className="form-control mb-3 mt-3"
                                     placeholder="Add repo"
                                 />
+
+                                <input
+                                    type="text"
+                                    ref={this.branchToAdd}
+                                    className="form-control mb-3 mt-3"
+                                    placeholder="Branch name"
+                                />
+                                <button onClick={this.addRepo}>Add Repo</button>
                             </div>
 
                         </div>

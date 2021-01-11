@@ -87,6 +87,8 @@ class Search extends EventEmitter {
         for(const line of lines) {
             let [filePath, code] = line.split("\0");
             if (!filePath || !code) continue;
+            // Cut the path so we don't expose the entire path
+            filePath = filePath.substring(filePath.indexOf(this.path) + this.path.length);
 
             let codeIdx = null;
             let lineNumber = "";
@@ -108,7 +110,7 @@ class Search extends EventEmitter {
                     search.lines.push({code, lineNumber});
                 }
                 else {
-                    search = {filePath, lines: [{line:code, lineNumber}]};
+                    search = {filePath, lines: [{code, lineNumber}]};
                     searches.push(search);
                 }
             }

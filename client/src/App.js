@@ -69,7 +69,7 @@ class App extends React.Component {
                     break
                 case "CLONE_REPO":
                     {
-                        const msg = json.error ? "CLONE_REPO Success" : "CLONE_REPO  Failed";
+                        const msg = json.error ? "CLONE_REPO  Failed" : "CLONE_REPO Success";
                         alert(msg);
                         console.log("CLONE_REPO: ", json)
                     }
